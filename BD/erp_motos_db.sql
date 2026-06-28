@@ -120,6 +120,20 @@ CREATE TABLE accesorios (
     activo          TINYINT(1)   NOT NULL DEFAULT 1
 );
 
+CREATE TABLE provedor (
+id_provedor_PK   INT AUTO_INCREMENT PRIMARY KEY,
+    nombre          VARCHAR(80)  NOT NULL,
+    apellido_paterno VARCHAR(60) NOT NULL,
+    apellido_materno VARCHAR(60),
+    email           VARCHAR(120) NOT NULL UNIQUE,
+    telefono        VARCHAR(20),
+    rfc             VARCHAR(20),
+    moto_FK     int,
+    accesorio_FK   int,
+    constraint moto_FK foreign key (moto_fk) references motos(id_moto_PK),
+    constraint accesorio_FK foreign key (accesorio_FK) references accesorios(id_accesorio_PK)
+    );
+
 CREATE TABLE movimientos_inventario (
     id_movimiento_PK  INT AUTO_INCREMENT PRIMARY KEY,
     tipo_producto     ENUM('moto','accesorio') NOT NULL,
