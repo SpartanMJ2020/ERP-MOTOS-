@@ -41,6 +41,14 @@ public class VentaService implements IVentaService {
     @Autowired
     private IDetalleVenta detalleData;
 
+    private float normalizarDescuentoItem(float valor, float baseItem) {
+        if (Float.isNaN(valor) || valor <= 0) return 0;
+        if (valor <= 100) return valor;
+        if (baseItem <= 0) return 0;
+        return Math.min((valor / baseItem) * 100f, 100f);
+    }
+
+
     @Autowired
     private IMoto motoData;
 
@@ -207,7 +215,12 @@ public class VentaService implements IVentaService {
             }
 
             float descuentoItem = item.getDescuento_item();
-            float subtotalItem = (item.getCantidad() * precioUnitario) - descuentoItem;
+            float baseItem = item.getCantidad() * precioUnitario;
+            descuentoItem = normalizarDescuentoItem(descuentoItem, baseItem);
+            if (descuentoItem < 0 || descuentoItem > 100) {
+                throw new IllegalArgumentException("El descuento por item debe ser entre 0 y 100.");
+            }
+            float subtotalItem = baseItem * (1 - descuentoItem / 100f);
 
             DetalleVenta detalle = new DetalleVenta();
             detalle.setTipo_producto(item.getTipo_producto());
@@ -221,7 +234,10 @@ public class VentaService implements IVentaService {
         }
 
         float descuento = dto.getDescuento();
-        float base = subtotalItems - descuento;
+        if (descuento < 0 || descuento > 100) {
+            throw new IllegalArgumentException("El descuento total debe ser entre 0 y 100.");
+        }
+        float base = subtotalItems * (1 - descuento / 100f);
         float iva = base * 0.16f;
         float total = base + iva;
 
