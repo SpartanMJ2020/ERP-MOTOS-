@@ -571,6 +571,7 @@
         limpiarFormularioVenta();
         cargarCatalogo();
         cargarVentas();
+        NotificacionesInventario.cargar(false);
       } catch(err) {
         const texto = err.message || 'Error al guardar la venta.';
         mostrarAlerta(texto, 'error');

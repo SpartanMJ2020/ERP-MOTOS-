@@ -182,6 +182,160 @@ function mostrarAlerta(mensaje, tipo = 'exito', contenedorId = 'alerta-container
     setTimeout(() => c.innerHTML = '', 4000);
 }
 
+const UMBRAL_STOCK_BAJO = 8;
+
+const NotificacionesInventario = {
+    datos: null,
+    _intervalo: null,
+
+    puedeVer() {
+        const rol = Permisos.rol();
+        return ['Administrador', 'Almacenista', 'Vendedor'].includes(rol);
+    },
+
+    _crearCampana() {
+        const topbar = document.querySelector('.topbar-usuario');
+        if (!topbar || document.getElementById('notif-campana')) return;
+
+        const main = document.querySelector('.main-content');
+        if (main && !document.getElementById('notif-stock-banner')) {
+            const banner = document.createElement('div');
+            banner.id = 'notif-stock-banner';
+            banner.style.display = 'none';
+            main.insertBefore(banner, main.firstChild);
+        }
+
+        const wrap = document.createElement('div');
+        wrap.className = 'notif-campana-wrap';
+        wrap.innerHTML = `
+          <button type="button" class="notif-campana" id="notif-campana" title="Alertas de inventario" aria-label="Alertas de inventario">
+            🔔
+            <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+          </button>
+          <div class="notif-panel" id="notif-panel">
+            <div class="notif-panel-header">
+              <strong>⚠️ Stock bajo</strong>
+              <small>Menos de ${UMBRAL_STOCK_BAJO} unidades</small>
+            </div>
+            <ul class="notif-lista" id="notif-lista"></ul>
+            <a href="inventario.html" class="notif-panel-link">Ver inventario →</a>
+          </div>`;
+        topbar.insertBefore(wrap, topbar.firstChild);
+
+        document.getElementById('notif-campana').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('notif-panel')?.classList.toggle('activo');
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('notif-panel')?.classList.remove('activo');
+        });
+    },
+
+    _renderizar() {
+        const badge = document.getElementById('notif-badge');
+        const lista = document.getElementById('notif-lista');
+        const banner = document.getElementById('notif-stock-banner');
+        const total = this.datos?.total ?? 0;
+        const productos = this.datos?.productos ?? [];
+
+        if (badge) {
+            badge.textContent = total;
+            badge.style.display = total > 0 ? 'inline-flex' : 'none';
+        }
+
+        if (lista) {
+            if (!productos.length) {
+                lista.innerHTML = '<li class="notif-vacio">✅ Sin productos con stock bajo.</li>';
+            } else {
+                lista.innerHTML = productos.map(p => `
+                  <li class="notif-item">
+                    <span class="notif-item-tipo">${p.tipo_producto === 'moto' ? '🏍️' : '🪖'}</span>
+                    <div>
+                      <strong>${p.nombre}</strong>
+                      <small>Stock: ${p.stock} uds.</small>
+                    </div>
+                  </li>`).join('');
+            }
+        }
+
+        if (banner) {
+            if (total > 0) {
+                banner.style.display = 'block';
+                banner.innerHTML = `
+                  <div class="alerta alerta-advertencia">
+                    ⚠️ <strong>${total} producto${total !== 1 ? 's' : ''}</strong> con stock inferior a ${UMBRAL_STOCK_BAJO} unidades.
+                    <a href="inventario.html" style="margin-left:8px;font-weight:600">Revisar inventario</a>
+                  </div>`;
+            } else {
+                banner.style.display = 'none';
+                banner.innerHTML = '';
+            }
+        }
+    },
+
+    _mostrarToastInicial() {
+        const total = this.datos?.total ?? 0;
+        if (total <= 0) return;
+        if (sessionStorage.getItem('erp_alerta_stock_vista')) return;
+        sessionStorage.setItem('erp_alerta_stock_vista', '1');
+        mostrarAlerta(
+            `${total} producto${total !== 1 ? 's' : ''} con stock inferior a ${UMBRAL_STOCK_BAJO} unidades.`,
+            'advertencia'
+        );
+    },
+
+    async cargar(mostrarToast = false) {
+        if (!this.puedeVer() || !Sesion.obtener()?.token) return null;
+        try {
+            this.datos = await Api.get('/inventario/notificacion/stock-bajo');
+            this._renderizar();
+            if (mostrarToast) this._mostrarToastInicial();
+            return this.datos;
+        } catch (_) {
+            return null;
+        }
+    },
+
+    init() {
+        if (!Sesion.obtener()?.token || window.location.pathname.endsWith('index.html')) return;
+        if (!this.puedeVer()) return;
+
+        this._crearCampana();
+        this.cargar(true);
+
+        if (this._intervalo) clearInterval(this._intervalo);
+        this._intervalo = setInterval(() => this.cargar(false), 5 * 60 * 1000);
+    },
+
+    renderPanelDashboard(contenedorId) {
+        const el = document.getElementById(contenedorId);
+        if (!el || !this.datos) return;
+
+        const productos = this.datos.productos ?? [];
+        if (!productos.length) {
+            el.innerHTML = '<p style="color:var(--gris-texto);padding:8px 0">✅ Todos los productos activos tienen stock suficiente.</p>';
+            return;
+        }
+
+        el.innerHTML = `
+          <div class="tabla-contenedor">
+            <table class="tabla">
+              <thead>
+                <tr><th>Tipo</th><th>Producto</th><th>Stock</th></tr>
+              </thead>
+              <tbody>
+                ${productos.map(p => `
+                  <tr>
+                    <td>${p.tipo_producto === 'moto' ? '🏍️ Moto' : '🪖 Accesorio'}</td>
+                    <td><strong>${p.nombre}</strong></td>
+                    <td class="stock-bajo">${p.stock}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+    }
+};
+
 /* ── Modal helpers ───────────────────────────────────────── */
 function abrirModal(id) {
     document.getElementById(id)?.classList.add('activo');
@@ -227,6 +381,7 @@ function cargarTopbarUsuario() {
     if (av) av.textContent = (u.nombre ?? 'U')[0].toUpperCase();
     if (rol) rol.textContent = u.rol ?? '';
     Permisos.aplicarSidebar();
+    NotificacionesInventario.init();
 }
 
 document.addEventListener('DOMContentLoaded', cargarTopbarUsuario);

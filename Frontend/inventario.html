@@ -14,7 +14,6 @@
     .tab.activo { border-color:var(--inventario-color); background:var(--inventario-color); color:#fff; }
     .tab:hover:not(.activo) { border-color:var(--inventario-color); color:var(--inventario-color); }
     .seccion { display:none; }
-    .seccion.activa { display:block; }
     .stock-bajo { color: #c0392b; font-weight:700; }
   </style>
 </head>
@@ -49,6 +48,7 @@
   </header>
 
   <main class="main-content">
+    <div id="notif-stock-banner" style="display:none"></div>
     <div id="alerta-container"></div>
 
     <div class="panel">
@@ -439,7 +439,7 @@
             <td>${m.cilindraje ? m.cilindraje + ' cc' : '—'}</td>
             <td>${formatearMoneda(m.precio_costo)}</td>
             <td>${formatearMoneda(m.precio_venta)}</td>
-            <td class="${m.stock <= 2 ? 'stock-bajo' : ''}">${m.stock}</td>
+            <td class="${m.stock < 8 ? 'stock-bajo' : ''}">${m.stock}</td>
             <td><span class="badge ${m.activo ? 'badge-exito' : 'badge-peligro'}">${m.activo ? 'Activo' : 'Inactivo'}</span></td>
             <td class="acciones-celda">
               <button type="button" class="badge badge-advertencia btn-accion" onclick="abrirEditarMoto(${JSON.stringify(m).replace(/"/g,'&quot;')})">Editar</button>
@@ -500,7 +500,7 @@
           <tr>
             <td>${i+1}</td><td><strong>${a.nombre}</strong></td><td>${a.categoria ?? '—'}</td>
             <td>${formatearMoneda(a.precio_costo)}</td><td>${formatearMoneda(a.precio_venta)}</td>
-            <td class="${a.stock <= 2 ? 'stock-bajo' : ''}">${a.stock}</td>
+            <td class="${a.stock < 8 ? 'stock-bajo' : ''}">${a.stock}</td>
             <td><span class="badge ${a.activo ? 'badge-exito' : 'badge-peligro'}">${a.activo ? 'Activo' : 'Inactivo'}</span></td>
             <td class="acciones-celda">
               <button type="button" class="badge badge-advertencia btn-accion" onclick="abrirEditarAccesorio(${JSON.stringify(a).replace(/"/g,'&quot;')})">Editar</button>
@@ -569,6 +569,7 @@
         cerrarModal('modal-moto');
         cargarMotos();
         cargarProductosMovimiento();
+        NotificacionesInventario.cargar(false);
       } catch(e) { mostrarAlerta(e.message || 'Error al guardar moto.', 'error'); }
     }
 
@@ -595,6 +596,7 @@
         cerrarModal('modal-accesorio');
         cargarAccesorios();
         cargarProductosMovimiento();
+        NotificacionesInventario.cargar(false);
       } catch(e) { mostrarAlerta(e.message || 'Error al guardar accesorio.', 'error'); }
     }
 
@@ -657,6 +659,7 @@
         cargarMovimientos();
         cargarMotos();
         cargarAccesorios();
+        NotificacionesInventario.cargar(false);
       } catch(e) { mostrarAlerta(e.message || 'Error al guardar movimiento.', 'error'); }
     }
 
