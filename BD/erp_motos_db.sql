@@ -506,3 +506,6 @@ INSERT INTO movimientos_inventario (tipo_producto, id_producto_ref, id_empleado_
 ('accesorio', 1,  2, 'salida',    1, 'Venta junto con VTA-2026-001'),
 ('accesorio', 5,  2, 'salida',    1, 'Venta junto con VTA-2026-002');
 
+
+
+

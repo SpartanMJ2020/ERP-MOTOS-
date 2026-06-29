@@ -42,3 +42,54 @@
     </ul></nav>
     <div class="sidebar-footer">ERP Motos v1.0 · UPFIM</div>
   </aside>
+    <!-- TOPBAR -->
+  <header class="topbar">
+    <span class="topbar-titulo">🤵 Módulo de Proveedores</span>
+    <div class="topbar-usuario">
+      <div class="avatar" id="topbar-avatar">A</div>
+      <span id="topbar-nombre">Administrador</span>
+      <small id="topbar-rol" style="font-size:.75rem;opacity:.7;margin-left:6px"></small>
+      <button class="btn btn-peligro btn-sm" onclick="Sesion.cerrar()">⏻ Salir</button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO -->
+  <main class="main-content">
+    <div id="alerta-container"></div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🤵 Gestión de Proveedores</h2>
+        <div class="tabs">
+          <button class="tab activo" onclick="cambiarTab('lista')">📋 Lista</button>
+          <button class="tab" onclick="cambiarTab('nuevo')">➕ Nuevo proveedor</button>
+          <button class="tab" onclick="cambiarTab('direcciones')">📍 Direcciones</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Lista de proveedores ── -->
+    <div id="sec-lista" class="seccion activa">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>📋 Proveedores Registrados</h2>
+          <div class="buscador">
+            <span>🔍</span>
+            <input type="text" id="buscar-cli" placeholder="Buscar provedor..." oninput="filtrarTabla('buscar-cli','tabla-clientes')">
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="tabla-contenedor">
+            <table class="tabla">
+              <thead>
+                <tr><th>#</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>RFC</th><th>moto FK</th><th>Accesorio FK</th></tr>
+              </thead>
+              <tbody id="tabla-provedor">
+                <tr><td colspan="8" style="text-align:center;padding:24px">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
