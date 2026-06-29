@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ERP Motos — Proveedores</title>
+  <link rel="stylesheet" href="CSS/style.css">
+  <style>
+    :root { --modulo-color: var(--proveedor-color); }
+    .panel-header h2 { color: var(--proveedor-color); }
+    .topbar { border-bottom: 3px solid var(--proveedor-color); }
+    .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+    .tab { padding:8px 18px; border-radius:var(--radio); border:2px solid #ddd; background:#fff; cursor:pointer; font-size:.88rem; font-weight:600; transition:all var(--transicion); }
+    .tab.activo { border-color:var(--proveedor-color); background:var(--proveedor-color); color:#fff; }
+    .tab:hover:not(.activo) { border-color:var(--proveedor-color); color:var(--proveedor-color); }
+    .seccion { display:none; }
+    .seccion.activa { display:block; }
+    .empleado-avatar {
+      width:40px; height:40px; border-radius:50%;
+      background:var(--proveedor-color); color:#fff;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span style="font-size:1.6rem">🏍️</span>
+      <div><span>ERP MotoShop</span><small>Módulo: Proveedor</small></div>
+    </div>
+    <nav><ul>
+      <li><a href="dashboard.html"><span class="icon">🏠</span><span>Dashboard</span></a></li>
+      <li class="sidebar-section">Módulos</li>
+      <li><a href="ventas.html"><span class="icon">💰</span><span>Ventas</span></a></li>
+      <li><a href="clientes.html"><span class="icon">👥</span><span>Clientes</span></a></li>
+      <li><a href="finanzas.html"><span class="icon">📊</span><span>Finanzas</span></a></li>
+      <li><a href="inventario.html"><span class="icon">📦</span><span>Inventario</span></a></li>
+      <li><a href="empleados.html"><span class="icon">👔</span><span>Empleados</span></a></li>
+      <li><a href="proveedores.html" class="activo"><span class="icon">🤵</span><span>Proveedores</span></a></li>
+    </ul></nav>
+    <div class="sidebar-footer">ERP Motos v1.0 · UPFIM</div>
+  </aside>
+    <!-- TOPBAR -->
+  <header class="topbar">
+    <span class="topbar-titulo">🤵 Módulo de Proveedores</span>
+    <div class="topbar-usuario">
+      <div class="avatar" id="topbar-avatar">A</div>
+      <span id="topbar-nombre">Administrador</span>
+      <small id="topbar-rol" style="font-size:.75rem;opacity:.7;margin-left:6px"></small>
+      <button class="btn btn-peligro btn-sm" onclick="Sesion.cerrar()">⏻ Salir</button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO -->
+  <main class="main-content">
+    <div id="alerta-container"></div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2>🤵 Gestión de Proveedores</h2>
+        <div class="tabs">
+          <button class="tab activo" onclick="cambiarTab('lista')">📋 Lista</button>
+          <button class="tab" onclick="cambiarTab('nuevo')">➕ Nuevo proveedor</button>
+          <button class="tab" onclick="cambiarTab('direcciones')">📍 Direcciones</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Lista de proveedores ── -->
+    <div id="sec-lista" class="seccion activa">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>📋 Proveedores Registrados</h2>
+          <div class="buscador">
+            <span>🔍</span>
+            <input type="text" id="buscar-cli" placeholder="Buscar provedor..." oninput="filtrarTabla('buscar-cli','tabla-clientes')">
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="tabla-contenedor">
+            <table class="tabla">
+              <thead>
+                <tr><th>#</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>RFC</th><th>moto FK</th><th>Accesorio FK</th></tr>
+              </thead>
+              <tbody id="tabla-provedor">
+                <tr><td colspan="8" style="text-align:center;padding:24px">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+

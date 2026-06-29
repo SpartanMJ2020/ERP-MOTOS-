@@ -11,12 +11,15 @@
     .stat-card:nth-child(3) { border-left-color: var(--finanzas-color); }
     .stat-card:nth-child(4) { border-left-color: var(--inventario-color); }
     .stat-card:nth-child(5) { border-left-color: var(--empleados-color); }
+    .stat-card:nth-child(6) { border-left-color: var(--proveedor-color); }
 
     .mod-ventas     .modulo-icon { background: rgba(233,69,96,.1);  color: var(--ventas-color); }
     .mod-clientes   .modulo-icon { background: rgba(15,52,96,.1);   color: var(--clientes-color); }
     .mod-finanzas   .modulo-icon { background: rgba(39,174,96,.1);  color: var(--finanzas-color); }
     .mod-inventario .modulo-icon { background: rgba(243,156,18,.1); color: var(--inventario-color); }
     .mod-empleados  .modulo-icon { background: rgba(142,68,173,.1); color: var(--empleados-color); }
+    .mod-proveedores  .modulo-icon { background: rgba(4, 235, 224, 0.1); color: var(--proveedor-color); }
+
 
     .bienvenida {
       background: linear-gradient(135deg, var(--primario), var(--acento2));
@@ -53,6 +56,7 @@
         <li><a href="finanzas.html"><span class="icon">📊</span><span>Finanzas</span></a></li>
         <li><a href="inventario.html"><span class="icon">📦</span><span>Inventario</span></a></li>
         <li><a href="empleados.html"><span class="icon">👔</span><span>Empleados</span></a></li>
+        <li><a href="proveedores.html"><span class="icon">🤵</span><span>Proveedores</span></a></li>
       </ul>
     </nav>
     <div class="sidebar-footer">ERP Motos v1.0 · UPFIM</div>
@@ -75,7 +79,7 @@
     <div class="bienvenida">
       <div>
         <h2>Bienvenido al ERP MotoShop 🏍️</h2>
-        <p>Sistema de gestión integral de ventas, clientes, finanzas, inventario y empleados.</p>
+        <p>Sistema de gestión integral de ventas, clientes, finanzas, inventario, proveedores y empleados.</p>
         <p id="fecha-hoy" style="margin-top:8px; opacity:.7; font-size:.82rem"></p>
       </div>
       <div class="emoji">🏍️</div>
@@ -102,6 +106,10 @@
       <div class="stat-card">
         <div class="stat-icon">📊</div>
         <div class="stat-info"><p>Ingresos del mes</p><h3 id="stat-ingresos">—</h3></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🤵</div>
+        <div class="stat-info"><p>Proveedores activos</p><h3 id="stat-proveedor">—</h3></div>
       </div>
     </div>
 
@@ -143,6 +151,12 @@
             <p>Personal y roles del sistema</p>
           </a>
 
+          <a href="proveedores.html" class="modulo-card mod-proveedores">
+            <div class="modulo-icon">🤵</div>
+            <h3>Proveedores</h3>
+            <p>Proveedor y accesorio que maneja</p>
+          </a>
+
         </div>
       </div>
     </div>
@@ -171,6 +185,8 @@
           tareas.push(Api.get('/empleados/empleado/obtener').then(d => ({ empleados: d })));
         if (Permisos.puedeAcceder('finanzas'))
           tareas.push(Api.get('/finanzas/ingreso/obtener').then(d => ({ ingresos: d })));
+        if (Permisos.puedeAcceder('proveedores'))
+          tareas.push(Api.get('/inventario/provedor/obtener').then(d => ({ proveedores: d })));
 
         const resultados = Object.assign({}, ...(await Promise.all(tareas)));
 
@@ -178,6 +194,8 @@
           document.getElementById('stat-ventas').textContent = resultados.ventas.length;
         if (resultados.clientes)
           document.getElementById('stat-clientes').textContent = resultados.clientes.length;
+        if (resultados.proveedores)
+          document.getElementById('stat-proveedores').textContent = resultados.proveedores.length;
         if (resultados.motos)
           document.getElementById('stat-motos').textContent = resultados.motos.length;
         if (resultados.empleados)
