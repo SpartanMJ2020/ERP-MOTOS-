@@ -14,7 +14,8 @@ const Permisos = {
         clientes:   ['Administrador', 'Vendedor'],
         finanzas:   ['Administrador', 'Contador'],
         inventario: ['Administrador', 'Almacenista'],
-        empleados:  ['Administrador']
+        empleados:  ['Administrador'],
+        proveedores:  ['Administrador']
     },
 
     rol() {
@@ -53,7 +54,8 @@ const Permisos = {
             'clientes.html':   '.mod-clientes',
             'finanzas.html':   '.mod-finanzas',
             'inventario.html': '.mod-inventario',
-            'empleados.html':  '.mod-empleados'
+            'empleados.html':  '.mod-empleados',
+            'proveedores.html':  '.mod-provedor'
         };
         Object.entries(mapa).forEach(([href, sel]) => {
             const modulo = href.replace('.html', '');
@@ -66,7 +68,8 @@ const Permisos = {
             'stat-clientes':  'clientes',
             'stat-motos':     'inventario',
             'stat-empleados': 'empleados',
-            'stat-ingresos':  'finanzas'
+            'stat-ingresos':  'finanzas',
+            'stat-proveedores':  'provedor'
         };
         Object.entries(stats).forEach(([id, modulo]) => {
             const card = document.getElementById(id)?.closest('.stat-card');
