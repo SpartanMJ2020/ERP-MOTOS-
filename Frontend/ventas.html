@@ -158,7 +158,7 @@
                   <input type="number" id="p-cantidad" min="1" value="1">
                 </div>
                 <div class="form-group" style="max-width:120px">
-                  <label>Desc. item ($)</label>
+                  <label>Desc. item (%)</label>
                   <input type="number" id="p-descuento" min="0" step="0.01" value="0">
                 </div>
                 <button type="button" class="btn btn-primario" onclick="agregarProducto()">➕ Agregar</button>
@@ -169,7 +169,7 @@
                   <thead>
                     <tr>
                       <th>Tipo</th><th>Producto</th><th>Precio</th><th>Cant.</th>
-                      <th>Desc.</th><th>Subtotal</th><th></th>
+                      <th>Desc. (%)</th><th>Subtotal</th><th></th>
                     </tr>
                   </thead>
                   <tbody id="tabla-carrito">
@@ -185,7 +185,7 @@
                 <input type="number" id="v-subtotal" min="0" step="0.01" readonly>
               </div>
               <div class="form-group">
-                <label>Descuento ($)</label>
+                <label>Descuento (%)</label>
                 <input type="number" id="v-descuento" min="0" step="0.01" value="0" oninput="calcularTotal()">
               </div>
               <div class="form-group">
@@ -318,11 +318,24 @@
       event.target.classList.add('activo');
     }
 
+    // ── Normalizar descuento como porcentaje ──────────────
+    function normalizarDescuentoPorcentaje(valor, base) {
+      if (isNaN(valor) || valor <= 0) return 0;
+      if (valor <= 100) return valor;
+      if (base <= 0) return 0;
+      return Math.min((valor / base) * 100, 100);
+    }
+
     // ── Calcular total en tiempo real ─────────────────────
     function calcularTotal() {
       const sub  = carrito.reduce((s, i) => s + i.subtotal, 0);
-      const desc = parseFloat(document.getElementById('v-descuento').value) || 0;
-      const base = sub - desc;
+      const rawDesc = parseFloat(document.getElementById('v-descuento').value) || 0;
+      const descPercent = normalizarDescuentoPorcentaje(rawDesc, sub);
+      if (rawDesc > 100 && sub > 0) {
+        document.getElementById('v-descuento').value = descPercent.toFixed(2);
+      }
+      const descAmount = sub * (descPercent / 100);
+      const base = sub - descAmount;
       const iva  = base * 0.16;
       const total= base + iva;
       document.getElementById('v-subtotal').value = sub.toFixed(2);
@@ -372,7 +385,7 @@
       const tipo      = document.getElementById('p-tipo').value;
       const id        = parseInt(document.getElementById('p-producto').value);
       const cantidad  = parseInt(document.getElementById('p-cantidad').value) || 1;
-      const descuento = parseFloat(document.getElementById('p-descuento').value) || 0;
+      const rawDescuento = parseFloat(document.getElementById('p-descuento').value) || 0;
 
       if (!id) { mostrarAlerta('Selecciona un producto.', 'error'); return; }
 
@@ -391,11 +404,18 @@
       }
 
       const precio   = prod.precio_venta;
-      const subtotal = (nuevaCant * precio) - descuento;
+      const baseItem = nuevaCant * precio;
+      let descuentoPercent = rawDescuento;
+      if (rawDescuento > 100 && baseItem > 0) {
+        descuentoPercent = normalizarDescuentoPorcentaje(rawDescuento, baseItem);
+        document.getElementById('p-descuento').value = descuentoPercent.toFixed(2);
+      }
+      const descuentoMonto = baseItem * (descuentoPercent / 100);
+      const subtotal = baseItem - descuentoMonto;
 
       if (existente) {
         existente.cantidad = nuevaCant;
-        existente.descuento_item = descuento;
+        existente.descuento_item = descuentoPercent;
         existente.subtotal = subtotal;
       } else {
         carrito.push({
@@ -404,7 +424,7 @@
           nombre: nombreProducto(tipo, prod),
           precio_unitario: precio,
           cantidad: nuevaCant,
-          descuento_item: descuento,
+          descuento_item: descuentoPercent,
           subtotal
         });
       }
@@ -431,16 +451,20 @@
         calcularTotal();
         return;
       }
-      tbody.innerHTML = carrito.map((item, i) => `
+      tbody.innerHTML = carrito.map((item, i) => {
+        const baseItem = item.precio_unitario * item.cantidad;
+        const descuentoVisible = normalizarDescuentoPorcentaje(item.descuento_item, baseItem);
+        return `
         <tr>
           <td>${item.tipo_producto === 'moto' ? '🏍️ Moto' : '🪖 Acc.'}</td>
           <td>${item.nombre}</td>
           <td>${formatearMoneda(item.precio_unitario)}</td>
           <td>${item.cantidad}</td>
-          <td>${formatearMoneda(item.descuento_item)}</td>
+          <td>${descuentoVisible.toFixed(2)}%</td>
           <td>${formatearMoneda(item.subtotal)}</td>
           <td><button type="button" class="badge badge-gris btn-accion" onclick="quitarProducto(${i})">Quitar</button></td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
       calcularTotal();
     }
 
@@ -591,13 +615,16 @@
         tbody.innerHTML = detalles.map(d => {
           const prod = obtenerProducto(d.tipo_producto, d.id_producto_ref);
           const nombre = prod ? nombreProducto(d.tipo_producto, prod) : `ID ${d.id_producto_ref}`;
+          const baseItem = d.precio_unitario * d.cantidad;
+          const descuentoVisible = normalizarDescuentoPorcentaje(d.descuento_item, baseItem);
+          const subtotalVisible = baseItem * (1 - descuentoVisible / 100);
           return `<tr>
             <td>${d.tipo_producto}</td>
             <td>${nombre}</td>
             <td>${d.cantidad}</td>
             <td>${formatearMoneda(d.precio_unitario)}</td>
-            <td>${formatearMoneda(d.descuento_item)}</td>
-            <td>${formatearMoneda(d.subtotal_item)}</td>
+            <td>${descuentoVisible.toFixed(2)}%</td>
+            <td>${formatearMoneda(subtotalVisible)}</td>
           </tr>`;
         }).join('');
       } catch(e) {

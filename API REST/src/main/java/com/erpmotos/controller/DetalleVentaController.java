@@ -46,7 +46,19 @@ public class DetalleVentaController {
 
     @GetMapping("/obtener/{idVenta}")
     public ResponseEntity<List<DetalleVenta>> obtenerPorVenta(@PathVariable int idVenta) {
-        return ResponseEntity.ok(service.listarPorVenta(idVenta));
+        List<DetalleVenta> detalles = service.listarPorVenta(idVenta);
+        detalles.forEach(d -> {
+            float baseItem = d.getPrecio_unitario() * d.getCantidad();
+            float porcentaje = d.getDescuento_item();
+            if (porcentaje > 100 && baseItem > 0) {
+                porcentaje = Math.min((porcentaje / baseItem) * 100f, 100f);
+                d.setDescuento_item(porcentaje);
+            }
+            if (baseItem > 0) {
+                d.setSubtotal_item(baseItem * (1 - porcentaje / 100f));
+            }
+        });
+        return ResponseEntity.ok(detalles);
     }
 
     @DeleteMapping("/eliminar/{id}")
