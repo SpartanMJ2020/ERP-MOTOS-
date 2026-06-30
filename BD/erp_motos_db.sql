@@ -506,6 +506,9 @@ INSERT INTO movimientos_inventario (tipo_producto, id_producto_ref, id_empleado_
 ('accesorio', 1,  2, 'salida',    1, 'Venta junto con VTA-2026-001'),
 ('accesorio', 5,  2, 'salida',    1, 'Venta junto con VTA-2026-002');
 
+insert into provedor (nombre, apellido_paterno, apellido_materno, email, telefono, rfc, moto_FK, accesorio_FK)
+values
+('Daniel',' Granados',' Santiago',' dgranados611@gmail.com', 7721652757,' GASD041009RX', 2,4);
 
 
 
